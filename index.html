@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifeShare — Season Census</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-deep: #06060f; --bg-dark: #0a0a18; --bg-card: #0e0e1e; --bg-panel: #111124;
+      --accent: #e94560; --accent-dim: #7b1a2e; --text-pri: #e8e8f0;
+      --text-sec: #8888aa; --text-dim: #44445a; --border: #1e1e38;
+      --mono: 'Share Tech Mono', monospace; --sans: 'Rajdhani', sans-serif;
+    }
+    html { background: var(--bg-deep); color: var(--text-pri); font-family: var(--sans); }
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(233,69,96,0.07) 0%, transparent 70%), var(--bg-deep);
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 100;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0.12) 4px);
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px 60px; }
+    header {
+      border-bottom: 1px solid var(--border); background: rgba(10,10,24,0.95);
+      position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px);
+    }
+    .header-inner {
+      max-width: 1100px; margin: 0 auto; padding: 0 20px;
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo svg { width: 28px; height: 28px; flex-shrink: 0; }
+    .logo-text { font-family: var(--sans); font-size: 18px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .condemned-badge {
+      font-family: var(--mono); font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--accent); background: rgba(233,69,96,0.08); border: 1px solid var(--accent-dim);
+      padding: 4px 12px; border-radius: 3px; animation: badge-pulse 2s ease-in-out infinite;
+    }
+    @keyframes badge-pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(233,69,96,0.3); }
+      50% { opacity: 0.5; box-shadow: none; }
+    }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #2ecc71; animation: dot-pulse 2s ease-in-out infinite; }
+    @keyframes dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+    .season-bar { background: var(--bg-dark); border-bottom: 1px solid var(--border); padding: 8px 20px; }
+    .season-bar-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .sb-label { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+    .sb-val { font-family: var(--mono); font-size: 10px; color: var(--text-sec); }
+    .sb-sep { color: var(--border); margin: 0 8px; }
+    .hero {
+      margin-top: 32px; background: var(--bg-card); border: 1px solid var(--border);
+      border-top: 2px solid var(--accent-dim); border-radius: 6px; padding: 28px 32px;
+      position: relative; overflow: hidden; animation: fadein 0.4s ease both;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 60% 80% at 0% 50%, rgba(233,69,96,0.04) 0%, transparent 70%);
+    }
+    .hero-top { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 16px; }
+    .lives-label { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+    .lives-number { font-family: var(--mono); font-size: 72px; line-height: 1; color: var(--accent); letter-spacing: -4px; text-shadow: 0 0 40px rgba(233,69,96,0.3); }
+    .lives-meta { text-align: right; }
+    .lm-row { margin-bottom: 8px; }
+    .lm-val { font-family: var(--mono); font-size: 18px; color: var(--text-sec); display: block; }
+    .lm-label { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+    .progress-wrap { background: #0d0d1a; border-radius: 2px; height: 5px; overflow: hidden; margin-bottom: 8px; }
+    .progress-fill { height: 100%; width: 18%; background: linear-gradient(90deg, #5c0d1e, var(--accent)); border-radius: 2px; position: relative; }
+    .progress-fill::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: white; opacity: 0.6; filter: blur(1px); }
+    .progress-labels { display: flex; justify-content: space-between; }
+    .p-label { font-family: var(--mono); font-size: 9px; color: var(--text-dim); }
+    .p-pct { color: var(--accent); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+      padding: 14px 16px; transition: border-color 0.2s; animation: fadein 0.4s ease both;
+    }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.2s; }
+    .stat-card:hover { border-color: #2e2e50; }
+    .stat-val { font-family: var(--mono); font-size: 26px; color: var(--text-pri); line-height: 1.1; }
+    .stat-val.red { color: var(--accent); }
+    .stat-label { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-top: 3px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; animation: fadein 0.4s ease 0.25s both; }
+    .panel-header { padding: 10px 16px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 9px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; background: var(--bg-panel); }
+    .kill-row { display: flex; align-items: center; padding: 9px 16px; border-bottom: 1px solid #0d0d1a; transition: background 0.15s; }
+    .kill-row:last-child { border-bottom: none; }
+    .kill-row:hover { background: rgba(255,255,255,0.02); }
+    .kill-rank { font-family: var(--mono); font-size: 10px; color: var(--text-dim); width: 20px; flex-shrink: 0; }
+    .kill-name { font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--text-sec); flex: 1; margin-left: 8px; }
+    .kill-name.top { color: var(--accent); }
+    .reaper-tag { font-family: var(--mono); font-size: 8px; letter-spacing: 1px; color: var(--accent-dim); background: rgba(233,69,96,0.08); border: 1px solid var(--accent-dim); padding: 1px 5px; border-radius: 2px; margin-left: 6px; text-transform: uppercase; }
+    .kill-count { font-family: var(--mono); font-size: 13px; color: var(--text-dim); }
+    .kill-count.top { color: var(--accent); }
+    .death-row { padding: 10px 16px; border-bottom: 1px solid #0d0d1a; transition: background 0.15s; }
+    .death-row:last-child { border-bottom: none; }
+    .death-row:hover { background: rgba(255,255,255,0.02); }
+    .death-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+    .death-victim { font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--text-pri); }
+    .death-time { font-family: var(--mono); font-size: 9px; color: var(--text-dim); }
+    .death-cause { font-family: var(--sans); font-size: 12px; color: var(--text-dim); }
+    .death-cause span { color: var(--text-sec); }
+    .death-lw { font-family: var(--mono); font-size: 11px; color: #4a2030; font-style: italic; margin-top: 4px; border-left: 2px solid #2a1020; padding-left: 7px; }
+    .footer-bar { background: var(--bg-dark); border-top: 1px solid var(--border); margin-top: 40px; padding: 12px 20px; }
+    .footer-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .footer-stat { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+    .footer-stat span { color: var(--text-sec); }
+    .data-note { text-align: center; margin-top: 24px; font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="none"><path d="M4 10C4 7 6.5 5 9 5C11 5 12.5 6 14 8C15.5 6 17 5 19 5C21.5 5 24 7 24 10C24 16 14 23 14 23C14 23 4 16 4 10Z" fill="#e94560" opacity="0.9"/><path d="M4 10C4 7 6.5 5 9 5C11 5 12.5 6 14 8C15.5 6 17 5 19 5C21.5 5 24 7 24 10C24 16 14 23 14 23C14 23 4 16 4 10Z" stroke="#7b1a2e" stroke-width="1.5"/></svg>
+      <span class="logo-text">LifeShare</span>
+    </div>
+    <div class="header-right">
+      <div class="condemned-badge">Condemned</div>
+      <div class="live-dot"></div>
+    </div>
+  </div>
+</header>
+
+<div class="season-bar">
+  <div class="season-bar-inner">
+    <span class="sb-label">Season</span><span class="sb-val">01 — The Founding</span>
+    <span class="sb-sep">|</span>
+    <span class="sb-label">Day</span><span class="sb-val">23</span>
+    <span class="sb-sep">|</span>
+    <span class="sb-label">State</span><span class="sb-val" style="color:#e94560;">Condemned</span>
+    <span class="sb-sep">|</span>
+    <span class="sb-label">Next drain</span><span class="sb-val">38m</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-top">
+      <div>
+        <div class="lives-label">Lives Remaining</div>
+        <div class="lives-number">089</div>
+      </div>
+      <div class="lives-meta">
+        <div class="lm-row"><span class="lm-val">500</span><span class="lm-label">Season start</span></div>
+        <div class="lm-row"><span class="lm-val">411</span><span class="lm-label">Total spent</span></div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill"></div></div>
+    <div class="progress-labels">
+      <span class="p-label">0</span>
+      <span class="p-label p-pct">17.8% remaining</span>
+      <span class="p-label">500</span>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val">34</div><div class="stat-label">Online now</div></div>
+    <div class="stat-card"><div class="stat-val">411</div><div class="stat-label">Total deaths</div></div>
+    <div class="stat-card"><div class="stat-val">23</div><div class="stat-label">Days elapsed</div></div>
+    <div class="stat-card"><div class="stat-val red">89</div><div class="stat-label">Lives left</div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-header">Most Dangerous — Season 1</div>
+      <div class="kill-row"><span class="kill-rank">1</span><span class="kill-name top">Vexmourn<span class="reaper-tag">Reaper</span></span><span class="kill-count top">47</span></div>
+      <div class="kill-row"><span class="kill-rank">2</span><span class="kill-name">Drathis</span><span class="kill-count">31</span></div>
+      <div class="kill-row"><span class="kill-rank">3</span><span class="kill-name">Solenne</span><span class="kill-count">28</span></div>
+      <div class="kill-row"><span class="kill-rank">4</span><span class="kill-name">NullByte</span><span class="kill-count">19</span></div>
+      <div class="kill-row"><span class="kill-rank">5</span><span class="kill-name">Kravik</span><span class="kill-count">14</span></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">Recent Deaths</div>
+      <div class="death-row">
+        <div class="death-top"><span class="death-victim">Pelloran</span><span class="death-time">2m ago</span></div>
+        <div class="death-cause">killed by <span>Vexmourn</span></div>
+        <div class="death-lw">"you were always going to win this"</div>
+      </div>
+      <div class="death-row">
+        <div class="death-top"><span class="death-victim">Someone</span><span class="death-time">14m ago</span></div>
+        <div class="death-cause">cause unknown</div>
+      </div>
+      <div class="death-row">
+        <div class="death-top"><span class="death-victim">Mirova</span><span class="death-time">31m ago</span></div>
+        <div class="death-cause">killed by <span>Drathis</span></div>
+        <div class="death-lw">"we trusted you"</div>
+      </div>
+      <div class="death-row">
+        <div class="death-top"><span class="death-victim">Ossek</span><span class="death-time">1h ago</span></div>
+        <div class="death-cause">slain by a warden</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="data-note">
+    <!-- TODO: replace hardcoded data with fetch('/census.json') when server is live -->
+    Showing Season 1 preview data &mdash; live data coming at launch
+  </div>
+
+</div>
+
+<div class="footer-bar">
+  <div class="footer-inner">
+    <span class="footer-stat"><span style="color:#2ecc71;">&#9679;</span> Live</span>
+    <span class="footer-stat">Curse drain: <span>1 life/hr</span></span>
+    <span class="footer-stat">Season ends when pool hits <span>0</span></span>
+    <span class="footer-stat">discord.gg/frCsAXu4HT</span>
+  </div>
+</div>
+
+</body>
+</html>
